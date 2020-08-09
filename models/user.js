@@ -1,6 +1,6 @@
-const mongose = require ('mongoose');
-const UserSchema = new mongose.Schema ({
-  full_name: {
+const mongose = require("mongoose");
+const UserSchema = new mongose.Schema({
+  email: {
     type: String,
     required: true,
   },
@@ -12,10 +12,30 @@ const UserSchema = new mongose.Schema ({
     type: String,
     required: true,
   },
-  role_id:{
-      type:Number,
-      required:true,
-  }
+  role_id: {
+    type: Number,
+    required: true,
+  },
+  image_path: {
+    type: String,
+    default: "",
+  },
+  device_token: {
+    type: String,
+    default: "",
+  },
+  isActive: {
+    type: Boolean,
+    default: false,
+  },
+  reset_password_code: {
+    type: String,
+    default: undefined,
+  },
+  reset_password_expires: {
+    type: Date,
+    default: undefined,
+  },
 });
-const User = mongose.model ('User', UserSchema);
+const User = mongose.model("User", UserSchema);
 module.exports = User;
