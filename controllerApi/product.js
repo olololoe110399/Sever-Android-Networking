@@ -1,6 +1,54 @@
 const Product = require("../models/product");
 const { v4: uuidv4 } = require("uuid");
 
+exports.getProductsByName = async (req, res) => {
+  if (req.query.query == undefined) {
+    await Product.find({})
+      .then((products) => {
+        return res.json({
+          success: true,
+          data: { products: products },
+          status_code: 200,
+          messages: "Get products by name Successfully!",
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+        res.json({
+          success: false,
+          data: {},
+          status_code: 500,
+          messages: "There was a problem when get products.",
+        });
+      });
+  } else {
+    const query = req.query.query;
+    await Product.find({})
+      .then((products) => {
+        const result = products.filter((product) => {
+          return (
+            product.title.toLowerCase().indexOf(query.toLowerCase()) !== -1
+          );
+        });
+        return res.json({
+          success: true,
+          data: { products: result },
+          status_code: 200,
+          messages: "Get products by name Successfully!",
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+        res.json({
+          success: false,
+          data: {},
+          status_code: 500,
+          messages: "There was a problem when get products.",
+        });
+      });
+  }
+};
+
 exports.uploadImage = (req, res) => {
   const id = uuidv4();
   let uploadedFile = req.files.image;
@@ -117,8 +165,37 @@ exports.deleteProduct = (req, res) => {
         success: true,
         data: {},
         status_code: 200,
-        messages: "Delete product '" + product.title + "' Successfully!",
+        messages: "Delete product Successfully!",
       });
     }
   });
+};
+exports.getProduct = (req, res) => {
+  let id = req.params.id;
+  Product.findById(id)
+    .then((product) => {
+      if (product)
+        res.json({
+          success: true,
+          data: product,
+          status_code: 200,
+          messages: "Get product Successfully!",
+        });
+      else
+        res.json({
+          success: false,
+          data: {},
+          status_code: 403,
+          messages: "Not found product!",
+        });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.json({
+        success: false,
+        data: {},
+        status_code: 500,
+        messages: "There was a problem when get product.",
+      });
+    });
 };

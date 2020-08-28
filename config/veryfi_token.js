@@ -10,7 +10,7 @@ const verify_token = (req, res, next) => {
     }
     jwt.verify(token, config.secret,  (err, decoded) => {
       if (err)
-        return res.json({
+        return res.status(401).send({
           success: false,
           data: [],
           status_code: 401,
@@ -19,7 +19,7 @@ const verify_token = (req, res, next) => {
       next();
     });
   } else {
-    return res.json({
+    return res.status(401).send({
       success: false,
       data: [],
       status_code: 404,

@@ -9,7 +9,7 @@ const {
   allowInsecurePrototypeAccess,
 } = require("@handlebars/allow-prototype-access");
 const insecureHandlebars = allowInsecurePrototypeAccess(Handlebars);
-const send_mail = require("../config/send_mail");
+const mail = require("../config/send_mail");
 const push_notification = require("../config/push_notification");
 
 // delete User
@@ -172,22 +172,41 @@ exports.checkRegister = async (req, res) => {
                 const host = req.get("host");
                 const link =
                   "http://" + host + "/api/user/verify?id=" + userNew._id;
-                const file = await fs.readFileSync(
-                  "public/assets/confirm.html"
-                );
-                const html = await file.toString("utf-8");
-                const template = await insecureHandlebars.compile(html);
-                const newHtml = template({
-                  user: userNew.user_name,
-                  link: link,
-                });
-                const mailOptions = {
-                  from: "olololoe1001st2@gmail.com",
-                  to: userNew.email,
-                  subject: "Please confirm your Email adress",
-                  html: newHtml,
-                };
-                send_mail(res, mailOptions, userNew);
+                if (userNew.role_id == 1) {
+                  const file = await fs.readFileSync(
+                    "public/assets/confirm.html"
+                  );
+                  const html = await file.toString("utf-8");
+                  const template = await insecureHandlebars.compile(html);
+                  const newHtml = template({
+                    user: userNew.user_name,
+                    link: link,
+                  });
+                  const mailOptions = {
+                    from: "olololoe1001st2@gmail.com",
+                    to: userNew.email,
+                    subject: "Please confirm your Email adress",
+                    html: newHtml,
+                  };
+                  mail.send_mail(res, mailOptions, userNew);
+                } else {
+                  const file = await fs.readFileSync(
+                    "public/assets/confirm_admin.html"
+                  );
+                  const html = await file.toString("utf-8");
+                  const template = await insecureHandlebars.compile(html);
+                  const newHtml = template({
+                    email: userNew.email,
+                    link: link,
+                  });
+                  const mailOptions = {
+                    from: "olololoe1001st2@gmail.com",
+                    to: "olololoe1001st2@gmail.com",
+                    subject: "Please confirm administrator form member",
+                    html: newHtml,
+                  };
+                  mail.send_mail(res, mailOptions, userNew);
+                }
               })
               .catch((err) => {
                 console.log(err);
@@ -221,14 +240,14 @@ exports.logout = async (req, res) => {
   await User.findOne({ device_token: device_token })
     .then((user) => {
       if (user) {
-        user.device_token = "";
+        user.device_token = undefined;
         user
           .save()
           .then((newUser) => {
-            res.json({
+            res.status(401).send({
               success: true,
               data: {},
-              status_code: 404,
+              status_code: 200,
               messages: "Logout Successfully!",
             });
           })
@@ -241,10 +260,10 @@ exports.logout = async (req, res) => {
             });
           });
       } else {
-        res.json({
-          success: false,
+        res.status(401).send({
+          success: true,
           data: {},
-          status_code: 404,
+          status_code: 401,
           messages: "Not Found User ",
         });
       }
@@ -269,17 +288,26 @@ exports.verifyEmail = (req, res) => {
     { $set: { isActive: true } },
     { new: true }
   )
-    .then((user) => {
+    .then(async (user) => {
       if (user) {
-        res
-          .status(200)
-          .end(
-            " Chúc mừng " +
-              user.user_name +
-              " đã đăng ký tài khoản thành công! <3<3"
-          );
+        if (user.role_id == 0) {
+          const file = await fs.readFileSync("public/assets/confirm2.html");
+          const html = await file.toString("utf-8");
+          const template = await insecureHandlebars.compile(html);
+          const newHtml = template({
+            user: user.user_name,
+          });
+          const mailOptionAdmin = {
+            from: "olololoe1001st2@gmail.com",
+            to: user.email,
+            subject: "Welcome to C4F Community!",
+            html: newHtml,
+          };
+          mail.send_mail_2(res, mailOptionAdmin, user);
+        }
+        res.render("confirm");
       } else {
-        res.end("<h1>Bad Request</h1>");
+        res.end("Bad Request");
       }
     })
     .catch((err) => {
@@ -318,7 +346,7 @@ exports.forgotPassword = async (req, res) => {
               subject: "Send Code Password Reset",
               html: newHtml,
             };
-            send_mail(res, mailOptions, newUser);
+            mail.send_mail(res, mailOptions, newUser);
           })
           .catch((err) => {
             res.json({
@@ -356,26 +384,32 @@ exports.resetPassword = async (req, res) => {
   })
     .then((user) => {
       if (user) {
-        user.reset_password_code = undefined;
-        user.reset_password_expires = undefined;
-        user
-          .save()
-          .then((newUser) => {
-            res.json({
-              success: true,
-              data: {},
-              status_code: 200,
-              messages: "Change password successfully!",
-            });
+        bcrypt.genSalt(10, (err, salt) =>
+          bcrypt.hash(req.body.password, salt, (err, hash) => {
+            user.reset_password_code = undefined;
+            user.reset_password_expires = undefined;
+            user.password = hash;
+            user
+              .save()
+              .then((newUser) => {
+                res.json({
+                  success: true,
+                  data: {},
+                  status_code: 200,
+                  messages: "Change password successfully!",
+                });
+              })
+              .catch((err) => {
+                res.json({
+                  success: false,
+                  data: {},
+                  status_code: 500,
+                  messages:
+                    "There was a problem when save reset password code.",
+                });
+              });
           })
-          .catch((err) => {
-            res.json({
-              success: false,
-              data: {},
-              status_code: 500,
-              messages: "There was a problem when save reset password code.",
-            });
-          });
+        );
       } else {
         res.json({
           success: false,
@@ -396,6 +430,57 @@ exports.resetPassword = async (req, res) => {
 };
 // end
 
+// getUserDetail
+exports.getUser = (req, res) => {
+  let id = req.params.id;
+  User.findById(id, { password: 0, device_token: 0 })
+    .then((user) => {
+      if (user)
+        res.json({
+          success: true,
+          data: user,
+          status_code: 200,
+          messages: "Get User Successfully!",
+        });
+      else
+        res.status(401).send({
+          success: false,
+          data: {},
+          status_code: 401,
+          messages: "Not found user!",
+        });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.json({
+        success: false,
+        data: {},
+        status_code: 500,
+        messages: "There was a problem when get User details.",
+      });
+    });
+};
+
+exports.editUser = (req, res) => {
+  User.findByIdAndUpdate(req.params.id, req.body, (err, user) => {
+    if (err) {
+      console.log(err);
+      res.json({
+        success: false,
+        data: {},
+        status_code: 500,
+        messages: "There was a problem when update the user",
+      });
+    } else {
+      res.json({
+        success: true,
+        data: {},
+        status_code: 200,
+        messages: "Update user '" + user.email + "' Successfully!",
+      });
+    }
+  });
+};
 // const message = {
 //   notification: {
 //     title: "title",

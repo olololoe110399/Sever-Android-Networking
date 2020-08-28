@@ -18,11 +18,11 @@ const UserSchema = new mongose.Schema({
   },
   image_path: {
     type: String,
-    default: "",
+    default: undefined,
   },
   device_token: {
     type: String,
-    default: "",
+    default: undefined,
   },
   isActive: {
     type: Boolean,
@@ -36,6 +36,14 @@ const UserSchema = new mongose.Schema({
     type: Date,
     default: undefined,
   },
+  phone: {
+    type: String,
+    default: undefined,
+  },
+  date:{
+      type:Date,
+      default:Date.now()
+  }
 });
 const User = mongose.model("User", UserSchema);
 module.exports = User;

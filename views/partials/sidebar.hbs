@@ -1,0 +1,55 @@
+<div class="sidebar" data-color="azure" data-background-color="white">
+    <!--
+      Tip 1: You can change the color of the sidebar using: data-color="purple | azure | green | orange | danger"
+
+      Tip 2: you can also add an image using data-image tag
+  -->
+    <div class="logo"><a href="profile" class="simple-text logo-normal">
+            {{#if this.user.image_path}}
+            <div class="row">
+                <div class="card card-profile">
+                    <div class="card-avatar2">
+                        <img class="-infoimg" src="/img/{{this.user.image_path}}" />
+                    </div>
+                    <h6 class="mt-3 card-category text-gray">{{this.user.full_name}}</h6>
+                </div>
+            </div>
+            {{else}}
+            <img class="rounded-circle" src="/img/new_logo.png" />
+            {{/if}}
+        </a></div>
+    <div class="sidebar-wrapper">
+        <ul class="nav">
+            <li class="nav-item {{#if activeDashboard}}active{{/if}} ">
+                <a class="nav-link" href="./dashboard">
+                    <i class="material-icons">dashboard</i>
+                    <p>Dashboard</p>
+                </a>
+            </li>
+            <li class="nav-item {{#if activeProfile}}active{{/if}} ">
+                <a class="nav-link" href="./profile">
+                    <i class="material-icons">account_circle</i>
+                    <p>User Profile</p>
+                </a>
+            </li>
+            <li class="nav-item {{#if activeCustomers}}active{{/if}}">
+                <a class="nav-link" href="./customers">
+                    <i class="material-icons">people_alt</i>
+                    <p>Customers</p>
+                </a>
+            </li>
+            <li class="nav-item {{#if activeProducts}}active{{/if}}">
+                <a class="nav-link" href="./products">
+                    <i class="material-icons">shopping_cart</i>
+                    <p>Products</p>
+                </a>
+            </li>
+            <li class="nav-item {{#if activeMap}}active{{/if}}">
+                <a class="nav-link" href="./maps">
+                    <i class="material-icons">location_ons</i>
+                    <p>Maps</p>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>

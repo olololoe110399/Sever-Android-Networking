@@ -17,7 +17,7 @@ deception:{
     required:true
 },
 date:{
-    type:String,
+    type:Date,
     default:Date.now()
 }
 });

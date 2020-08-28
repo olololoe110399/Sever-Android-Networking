@@ -25,11 +25,11 @@ app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 
 // configure handlebar
-app.engine('handlebars', exphbs({
+app.engine('hbs', exphbs({
   defaultLayout: 'main',
   handlebars: allowInsecurePrototypeAccess(Handlebars)
  }));
- app.set('view engine', 'handlebars');
+ app.set('view engine', 'hbs');
 
 
 // configure Mongodb
